@@ -1,6 +1,0 @@
-spring:
-  datasource:
-    url: ${DATABASE_URLS}
-    username: ${DATABASE_USER}
-    password: ${DATABASE_PASSWORD}
-    driverClassName: com.mysql.jdbc.Driver

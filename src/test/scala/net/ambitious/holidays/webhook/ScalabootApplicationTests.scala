@@ -1,4 +1,4 @@
-package sample.scalaboot
+package net.ambitious.holidays.webhook
 
 import org.junit.Test
 import org.junit.runner.RunWith

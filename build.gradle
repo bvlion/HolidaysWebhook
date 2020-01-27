@@ -1,16 +1,27 @@
 import com.github.spotbugs.SpotBugsTask
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.2.2.RELEASE'
+    }
+}
+
 plugins {
     id 'org.springframework.boot' version '2.2.2.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'scala'
     id 'idea'
-    id 'checkstyle'
     id 'com.github.spotbugs' version '2.0.0'
 }
 
-group = 'net.ambitious.bvlion.batch2'
-version = '0.0.1-SNAPSHOT'
+group = 'net.ambitious.holidays.webhook'
+version = '0.0.1'
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
 
 configurations {
     compileOnly {
@@ -26,6 +37,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.1'
     implementation 'org.scala-lang:scala-library:2.13.1'
     runtimeOnly 'mysql:mysql-connector-java'
@@ -39,14 +51,7 @@ dependencies {
 
 spotbugs {
     toolVersion = '4.0.0-beta4'
-    excludeFilter = file("${project.rootDir}/findbugs-exculde.xml")
     spotbugsTest.enabled false
-}
-
-checkstyle {
-    toolVersion '7.8.1'
-    configFile file("$rootDir/checkstyle.xml")
-    checkstyleTest.enabled false
 }
 
 tasks.withType(SpotBugsTask) {
@@ -57,7 +62,6 @@ tasks.withType(SpotBugsTask) {
 
     classes = classes.filter {
         !it.path.contains(new File("config/").path) &&
-                !it.path.contains(new File("net.ambitious.mapper/").path) &&
-                !it.path.contains(new File("logback.xml").path)
+                !it.path.contains(new File("net.ambitious.holidays.webhook.mapper/").path)
     }
 }

@@ -1,4 +1,4 @@
-package sample.scalaboot.controller
+package net.ambitious.holidays.webhook.controller
 
 import org.hamcrest.Matchers.equalTo
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -25,7 +25,7 @@ class SampleControllerTest {
   @Test
   @throws[Exception]
   def sampleGet_Ok(): Unit =
-    mvc.perform(MockMvcRequestBuilders.get("/sample").accept(MediaType.APPLICATION_JSON))
+    mvc.perform(MockMvcRequestBuilders.get("/").accept(MediaType.APPLICATION_JSON))
       .andExpect(status.isOk)
-      .andExpect(content.string(equalTo("sample")))
+      .andExpect(content.string(equalTo("index")))
 }

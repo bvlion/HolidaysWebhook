@@ -1,10 +1,10 @@
-package sample.scalaboot.controller
+package net.ambitious.holidays.webhook.controller
 
 import org.springframework.web.bind.annotation.{RequestMapping, RequestMethod, RestController}
 
 @RestController
-@RequestMapping(Array("/sample"))
+@RequestMapping(Array("*"))
 class SampleController {
   @RequestMapping(method = Array(RequestMethod.GET))
-  def sample = "sample"
+  def index = "index"
 }

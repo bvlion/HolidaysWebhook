@@ -1,0 +1,71 @@
+version: 2.1
+orbs:
+  gcp-cli: circleci/gcp-cli@1.8.3
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:11.0.2-jdk
+
+    environment:
+      JVM_OPTS: -Xmx3200m
+
+    steps:
+      - checkout
+
+      - run:
+          name: SetUp Build
+          command: chmod 755 gradlew
+
+      - restore_cache:
+          key: dependencies-{{ checksum "build.gradle" }}
+
+      - run:
+          name: gradle dependencies
+          command: ./gradlew dependencies
+
+      - save_cache:
+          paths: ~/.gradle
+          key: dependencies-{{ checksum "build.gradle" }}
+
+      - run:
+          name: Build apk
+          command: ./gradlew clean build
+
+      - store_artifacts:
+          path: build/reports
+          destination: reports
+
+      - store_test_results:
+          path: build/test-results
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  deploy:
+    docker:
+      - image: google/cloud-sdk:latest
+
+    steps:
+      - attach_workspace:
+          at: .
+
+      - gcp-cli/initialize
+
+      - run:
+          name: Deploy to Google App Engine
+          command: gcloud --quiet app deploy app.yaml --version=test
+
+workflows:
+  all_script:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          requires:
+            - build
