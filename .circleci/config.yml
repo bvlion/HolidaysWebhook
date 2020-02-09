@@ -1,15 +1,15 @@
 version: 2.1
 
-parameters:
-  - run_build:
-      type: boolean
-      default: false
-  - version:
-      type: string
-      default: test
-
 orbs:
   gcp-cli: circleci/gcp-cli@1.8.3
+
+parameters:
+  run_build:
+    type: boolean
+    default: false
+  version:
+    type: string
+    default: test
 
 jobs:
   build:
