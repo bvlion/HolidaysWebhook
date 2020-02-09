@@ -1,6 +1,15 @@
 version: 2.1
+
 orbs:
   gcp-cli: circleci/gcp-cli@1.8.3
+
+parameters:
+  run_build:
+    type: boolean
+    default: false
+  version:
+    type: string
+    default: test
 
 jobs:
   build:
@@ -49,14 +58,18 @@ jobs:
       - image: google/cloud-sdk:latest
 
     steps:
-      - attach_workspace:
-          at: .
+      - run: echo "build run_build is << pipeline.parameters.run_build >>"
+      - when:
+          condition: << pipeline.parameters.run_build >>
+          steps:
+            - attach_workspace:
+                at: .
 
-      - gcp-cli/initialize
+            - gcp-cli/initialize
 
-      - run:
-          name: Deploy to Google App Engine
-          command: gcloud --quiet app deploy app.yaml --version=test
+            - run:
+                name: Deploy to Google App Engine
+                command: gcloud --quiet app deploy app.yaml --version=<< pipeline.parameters.version >>
 
 workflows:
   all_script:
@@ -69,3 +82,8 @@ workflows:
       - deploy:
           requires:
             - build
+          filters:
+            tags:
+              only: /v.*/
+            branches:
+              ignore: /.*/
