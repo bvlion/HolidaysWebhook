@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner
 
 @RunWith(classOf[SpringRunner])
 @SpringBootTest
-class HolidaysWebhookApplicationTests {
+class ScalabootApplicationTests {
   @Test
   def contextLoads(): Unit = {
   }
