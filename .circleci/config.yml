@@ -12,7 +12,54 @@ parameters:
     default: test
 
 jobs:
-  build:
+  js-build:
+    docker:
+      - image: circleci/node:13.7.0
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys: v1-dependencies-{{ checksum "front/package.json" }}
+
+      - run:
+          name: 'Install Dependencies'
+          command: cd front && npm install && cd ..
+
+      - run:
+          name: 'Build Svelte'
+          command: cd front && npm run build && cd ..
+
+      - run:
+          name: 'Minify Files'
+          command: cd front && node_modules/.bin/gulp minify-css minify-html && cd ..
+
+      - save_cache:
+          paths:
+            - front/node_modules
+          key: v1-dependencies-{{ checksum "front/package.json" }}
+
+      - run:
+          name: 'Move deployment'
+          command: |
+            mkdir -p back/src/main/resources/static
+            mv front/dist/css back/src/main/resources/static/
+            mv front/public/build back/src/main/resources/static/
+            mkdir -p back/src/main/resources/templates
+            mv front/dist/index.html back/src/main/resources/templates/.
+
+      - run:
+          name: 'Move next use files'
+          command: |
+            mkdir /tmp/workspace
+            mv back /tmp/workspace
+
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - back
+
+  java-build:
     docker:
       - image: circleci/openjdk:11.0.2-jdk
 
@@ -20,10 +67,15 @@ jobs:
       JVM_OPTS: -Xmx3200m
 
     steps:
-      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
 
       - run:
-          name: SetUp Build
+          name: 'Move files'
+          command: mv /tmp/workspace/back .
+
+      - run:
+          name: 'SetUp Build'
           command: chmod 755 gradlew
 
       - restore_cache:
@@ -74,14 +126,17 @@ jobs:
 workflows:
   all_script:
     jobs:
-      - build:
+      - js-build:
           filters:
             branches:
               only:
                 - master
+      - java-build:
+          requires:
+            - js-build
       - deploy:
           requires:
-            - build
+            - java-build
           filters:
             tags:
               only: /v.*/

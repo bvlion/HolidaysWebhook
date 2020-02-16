@@ -1,0 +1,29 @@
+{
+  "name": "front",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "sirv public",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "eslint": "^5.12.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "gulp": "^4.0.2",
+    "gulp-clean-css": "^4.2.0",
+    "gulp-htmlmin": "^5.0.1",
+    "rollup": "^1.20.0",
+    "rollup-plugin-livereload": "^1.0.0",
+    "rollup-plugin-svelte": "^5.0.3",
+    "rollup-plugin-terser": "^5.1.2",
+    "svelte": "^3.0.0"
+  },
+  "dependencies": {
+    "sirv-cli": "^0.4.4",
+    "svelte-spa-router": "^2.0.0"
+  },
+  "private": true
+}
