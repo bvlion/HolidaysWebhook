@@ -72,7 +72,7 @@ jobs:
 
       - run:
           name: 'Move files'
-          command: mv /tmp/workspace/back .
+          command: mv /tmp/workspace/back/* .
 
       - run:
           name: 'SetUp Build'
