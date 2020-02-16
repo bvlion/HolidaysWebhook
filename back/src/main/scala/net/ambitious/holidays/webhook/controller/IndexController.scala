@@ -7,5 +7,5 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping(Array("/"))
 class IndexController {
   @RequestMapping
-  def index() = "/index"
+  def index() = "index"
 }
