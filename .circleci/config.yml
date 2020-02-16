@@ -60,7 +60,6 @@ jobs:
           paths:
             - back
 
-jobs:
   java-build:
     docker:
       - image: circleci/openjdk:11.0.2-jdk
