@@ -128,12 +128,20 @@ workflows:
     jobs:
       - js-build:
           filters:
+            tags:
+              only: /.*/
             branches:
               only:
                 - master
       - java-build:
           requires:
             - js-build
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only:
+                - master
       - deploy:
           requires:
             - java-build
