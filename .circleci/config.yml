@@ -17,47 +17,51 @@ jobs:
       - image: circleci/node:13.7.0
 
     steps:
-      - checkout
+      - run: echo "build run_build is << pipeline.parameters.run_build >>"
+      - when:
+          condition: << pipeline.parameters.run_build >>
+          steps:
+            - checkout
 
-      - restore_cache:
-          key: v1-dependencies-{{ checksum "front/package.json" }}
+            - restore_cache:
+                key: v1-dependencies-{{ checksum "front/package.json" }}
 
-      - run:
-          name: 'Install Dependencies'
-          command: cd front && npm install && cd ..
+            - run:
+                name: 'Install Dependencies'
+                command: cd front && npm install && cd ..
 
-      - run:
-          name: 'Build Svelte'
-          command: cd front && npm run build && cd ..
+            - run:
+                name: 'Build Svelte'
+                command: cd front && npm run build && cd ..
 
-      - run:
-          name: 'Minify Files'
-          command: cd front && node_modules/.bin/gulp minify-css minify-html && cd ..
+            - run:
+                name: 'Minify Files'
+                command: cd front && node_modules/.bin/gulp minify-css minify-html && cd ..
 
-      - save_cache:
-          paths:
-            - front/node_modules
-          key: v1-dependencies-{{ checksum "front/package.json" }}
+            - save_cache:
+                paths:
+                  - front/node_modules
+                key: v1-dependencies-{{ checksum "front/package.json" }}
 
-      - run:
-          name: 'Move deployment'
-          command: |
-            mkdir -p back/src/main/resources/static
-            mv front/dist/css back/src/main/resources/static/
-            mv front/public/build back/src/main/resources/static/
-            mkdir -p back/src/main/resources/templates
-            mv front/dist/index.html back/src/main/resources/templates/.
+            - run:
+                name: 'Move deployment'
+                command: |
+                  mkdir -p back/src/main/resources/static
+                  mv front/dist/css back/src/main/resources/static/
+                  mv front/public/build back/src/main/resources/static/
+                  mkdir -p back/src/main/resources/templates
+                  mv front/dist/index.html back/src/main/resources/templates/.
 
-      - run:
-          name: 'Move next use files'
-          command: |
-            mkdir /tmp/workspace
-            mv back /tmp/workspace
+            - run:
+                name: 'Move next use files'
+                command: |
+                  mkdir /tmp/workspace
+                  mv back /tmp/workspace
 
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - back
+            - persist_to_workspace:
+                root: /tmp/workspace
+                paths:
+                  - back
 
   java-build:
     docker:
@@ -67,43 +71,47 @@ jobs:
       JVM_OPTS: -Xmx3200m
 
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
+      - run: echo "build run_build is << pipeline.parameters.run_build >>"
+      - when:
+          condition: << pipeline.parameters.run_build >>
+          steps:
+            - attach_workspace:
+                at: /tmp/workspace
 
-      - run:
-          name: 'Move files'
-          command: mv /tmp/workspace/back/* .
+            - run:
+                name: 'Move files'
+                command: mv /tmp/workspace/back/* .
 
-      - run:
-          name: 'SetUp Build'
-          command: chmod 755 gradlew
+            - run:
+                name: 'SetUp Build'
+                command: chmod 755 gradlew
 
-      - restore_cache:
-          key: dependencies-{{ checksum "build.gradle" }}
+            - restore_cache:
+                key: dependencies-{{ checksum "build.gradle" }}
 
-      - run:
-          name: gradle dependencies
-          command: ./gradlew dependencies
+            - run:
+                name: gradle dependencies
+                command: ./gradlew dependencies
 
-      - save_cache:
-          paths: ~/.gradle
-          key: dependencies-{{ checksum "build.gradle" }}
+            - save_cache:
+                paths: ~/.gradle
+                key: dependencies-{{ checksum "build.gradle" }}
 
-      - run:
-          name: Build apk
-          command: ./gradlew clean build
+            - run:
+                name: Build apk
+                command: ./gradlew clean build
 
-      - store_artifacts:
-          path: build/reports
-          destination: reports
+            - store_artifacts:
+                path: build/reports
+                destination: reports
 
-      - store_test_results:
-          path: build/test-results
+            - store_test_results:
+                path: build/test-results
 
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
+            - persist_to_workspace:
+                root: .
+                paths:
+                  - .
 
   deploy:
     docker:
