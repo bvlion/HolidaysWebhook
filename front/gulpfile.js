@@ -12,7 +12,7 @@ gulp.task('minify-html', () => {
 })
 
 gulp.task('minify-css', () =>
-  gulp.src('public/global.css')
+  gulp.src('public/css/global.css')
     .pipe(cleanCSS())
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist/css'))
 )

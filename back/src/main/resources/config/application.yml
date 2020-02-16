@@ -4,5 +4,3 @@ spring:
     username: root
     password: root
     driverClassName: com.mysql.jdbc.Driver
-  resources:
-    cache-period: 604800
