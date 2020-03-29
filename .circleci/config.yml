@@ -3,65 +3,53 @@ version: 2.1
 orbs:
   gcp-cli: circleci/gcp-cli@1.8.3
 
-parameters:
-  run_build:
-    type: boolean
-    default: false
-  version:
-    type: string
-    default: test
-
 jobs:
   js-build:
     docker:
       - image: circleci/node:13.7.0
 
     steps:
-      - run: echo "build run_build is << pipeline.parameters.run_build >>"
-      - when:
-          condition: << pipeline.parameters.run_build >>
-          steps:
-            - checkout
+      - checkout
 
-            - restore_cache:
-                key: v1-dependencies-{{ checksum "front/package.json" }}
+      - restore_cache:
+          key: v1-dependencies-{{ checksum "front/package.json" }}
 
-            - run:
-                name: 'Install Dependencies'
-                command: cd front && npm install && cd ..
+      - run:
+          name: 'Install Dependencies'
+          command: cd front && npm install && cd ..
 
-            - run:
-                name: 'Build Svelte'
-                command: cd front && npm run build && cd ..
+      - run:
+          name: 'Build Svelte'
+          command: cd front && npm run build && cd ..
 
-            - run:
-                name: 'Minify Files'
-                command: cd front && node_modules/.bin/gulp minify-css minify-html && cd ..
+      - run:
+          name: 'Minify Files'
+          command: cd front && node_modules/.bin/gulp minify-css minify-html && cd ..
 
-            - save_cache:
-                paths:
-                  - front/node_modules
-                key: v1-dependencies-{{ checksum "front/package.json" }}
+      - save_cache:
+          paths:
+            - front/node_modules
+          key: v1-dependencies-{{ checksum "front/package.json" }}
 
-            - run:
-                name: 'Move deployment'
-                command: |
-                  mkdir -p back/src/main/resources/static
-                  mv front/dist/css back/src/main/resources/static/
-                  mv front/public/build back/src/main/resources/static/
-                  mkdir -p back/src/main/resources/templates
-                  mv front/dist/index.html back/src/main/resources/templates/.
+      - run:
+          name: 'Move deployment'
+          command: |
+            mkdir -p back/src/main/resources/static
+            mv front/dist/css back/src/main/resources/static/
+            mv front/public/build back/src/main/resources/static/
+            mkdir -p back/src/main/resources/templates
+            mv front/dist/index.html back/src/main/resources/templates/.
 
-            - run:
-                name: 'Move next use files'
-                command: |
-                  mkdir /tmp/workspace
-                  mv back /tmp/workspace
+      - run:
+          name: 'Move next use files'
+          command: |
+            mkdir /tmp/workspace
+            mv back /tmp/workspace
 
-            - persist_to_workspace:
-                root: /tmp/workspace
-                paths:
-                  - back
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - back
 
   java-build:
     docker:
@@ -71,85 +59,79 @@ jobs:
       JVM_OPTS: -Xmx3200m
 
     steps:
-      - run: echo "build run_build is << pipeline.parameters.run_build >>"
-      - when:
-          condition: << pipeline.parameters.run_build >>
-          steps:
-            - attach_workspace:
-                at: /tmp/workspace
+      - attach_workspace:
+          at: /tmp/workspace
 
-            - run:
-                name: 'Move files'
-                command: mv /tmp/workspace/back/* .
+      - run:
+          name: 'Move files'
+          command: mv /tmp/workspace/back/* .
 
-            - run:
-                name: 'SetUp Build'
-                command: chmod 755 gradlew
+      - run:
+          name: 'SetUp Build'
+          command: chmod 755 gradlew
 
-            - restore_cache:
-                key: dependencies-{{ checksum "build.gradle" }}
+      - restore_cache:
+          key: dependencies-{{ checksum "build.gradle" }}
 
-            - run:
-                name: gradle dependencies
-                command: ./gradlew dependencies
+      - run:
+          name: gradle dependencies
+          command: ./gradlew dependencies
 
-            - save_cache:
-                paths: ~/.gradle
-                key: dependencies-{{ checksum "build.gradle" }}
+      - save_cache:
+          paths: ~/.gradle
+          key: dependencies-{{ checksum "build.gradle" }}
 
-            - run:
-                name: Build apk
-                command: ./gradlew clean build
+      - run:
+          name: Build apk
+          command: ./gradlew clean build
 
-            - store_artifacts:
-                path: build/reports
-                destination: reports
+      - store_artifacts:
+          path: build/reports
+          destination: reports
 
-            - store_test_results:
-                path: build/test-results
+      - store_test_results:
+          path: build/test-results
 
-            - persist_to_workspace:
-                root: .
-                paths:
-                  - .
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   deploy:
     docker:
       - image: google/cloud-sdk:latest
 
     steps:
-      - run: echo "build run_build is << pipeline.parameters.run_build >>"
-      - when:
-          condition: << pipeline.parameters.run_build >>
-          steps:
-            - attach_workspace:
-                at: .
+      - attach_workspace:
+          at: .
 
-            - gcp-cli/initialize
+      - gcp-cli/initialize
 
-            - run:
-                name: Deploy to Google App Engine
-                command: gcloud --quiet app deploy app.yaml --version=<< pipeline.parameters.version >>
+      - run:
+          name: Deploy to Google App Engine
+          command: gcloud --quiet app deploy app.yaml --version=$CIRCLE_TAG
 
 workflows:
-  all_script:
+  build_script:
+    jobs:
+      - js-build
+      - java-build
+  release_script:
     jobs:
       - js-build:
           filters:
             tags:
-              only: /.*/
+              only: /v.*/
             branches:
-              only:
-                - master
+              ignore: /.*/
       - java-build:
           requires:
             - js-build
           filters:
             tags:
-              only: /.*/
+              only: /v.*/
             branches:
-              only:
-                - master
+              ignore: /.*/
       - deploy:
           requires:
             - java-build
