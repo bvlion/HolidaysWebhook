@@ -109,7 +109,7 @@ jobs:
 
       - run:
           name: Deploy to Google App Engine
-          command: gcloud --quiet app deploy app.yaml --version=$CIRCLE_TAG
+          command: gcloud --quiet app deploy app.yaml --version=`echo $CIRCLE_TAG | sed -e 's/\./-/g'`
 
 workflows:
   build_script:
