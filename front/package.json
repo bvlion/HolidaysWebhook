@@ -19,11 +19,15 @@
     "rollup-plugin-livereload": "^1.0.0",
     "rollup-plugin-svelte": "^5.0.3",
     "rollup-plugin-terser": "^5.1.2",
-    "svelte": "^3.0.0"
+    "svelte": "^3.0.0",
+    "minimist": ">=1.2.2",
+    "acorn": ">=7.1.1"
   },
   "dependencies": {
     "sirv-cli": "^0.4.4",
-    "svelte-spa-router": "^2.0.0"
+    "svelte-spa-router": "^2.0.0",
+    "minimist": ">=1.2.2",
+    "acorn": ">=7.1.1"
   },
   "private": true
 }
