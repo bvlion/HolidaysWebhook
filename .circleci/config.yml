@@ -115,7 +115,9 @@ workflows:
   build_script:
     jobs:
       - js-build
-      - java-build
+      - java-build:
+          requires:
+            - js-build
   release_script:
     jobs:
       - js-build:
